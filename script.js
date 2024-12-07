@@ -13,48 +13,62 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentImage = null;
 
     // 点击上传区域触发文件选择
-    dropZone.onclick = function() {
+    dropZone.addEventListener('click', function(e) {
+        e.preventDefault();
         fileInput.click();
-    };
+    });
 
     // 处理文件选择
-    fileInput.onchange = function(e) {
+    fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             processImage(file);
         }
-    };
+    });
+
+    // 阻止默认拖放行为
+    document.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    });
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
+    });
 
     // 处理拖放
-    dropZone.ondragover = function(e) {
+    dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         dropZone.classList.add('dragover');
-    };
+    });
 
-    dropZone.ondragleave = function(e) {
+    dropZone.addEventListener('dragleave', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         dropZone.classList.remove('dragover');
-    };
+    });
 
-    dropZone.ondrop = function(e) {
+    dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         dropZone.classList.remove('dragover');
         const file = e.dataTransfer.files[0];
         if (file) {
             processImage(file);
         }
-    };
+    });
 
     // 处理质量滑块变化
-    quality.oninput = function() {
+    quality.addEventListener('input', function() {
         qualityValue.textContent = this.value + '%';
         if (currentImage) {
             compressImage(currentImage);
         }
-    };
+    });
 
     // 处理图片
     function processImage(file) {
+        console.log('Processing image:', file);
         if (!file.type.startsWith('image/')) {
             alert('请选择图片文件！');
             return;
@@ -65,8 +79,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const reader = new FileReader();
         reader.onload = function(e) {
+            console.log('File loaded');
             const img = new Image();
             img.onload = function() {
+                console.log('Image loaded');
                 preview.src = e.target.result;
                 preview.style.display = 'block';
                 compressImage(file);
@@ -78,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 压缩图片
     function compressImage(file) {
+        console.log('Compressing image');
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
@@ -118,6 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const base64String = compressedDataUrl.split(',')[1];
                 const compressedSize = Math.round((base64String.length * 3) / 4);
                 document.getElementById('compressedSize').textContent = formatFileSize(compressedSize);
+                
+                console.log('Compression complete');
             };
             img.src = e.target.result;
         };
