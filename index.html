@@ -20,6 +20,11 @@
             margin: 20px 0;
             cursor: pointer;
             background-color: white;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.dragover {
+            background-color: #e8f5e9;
+            border-color: #2e7d32;
         }
         .image-info {
             background-color: white;
@@ -27,12 +32,19 @@
             margin: 20px 0;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .preview-container {
+            margin: 20px 0;
+            text-align: center;
         }
         #preview {
             max-width: 100%;
-            margin: 20px 0;
-            display: none;
+            max-height: 400px;
+            margin: 10px auto;
             border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
         }
         .button {
             background-color: #4CAF50;
@@ -45,14 +57,27 @@
             font-size: 16px;
             margin: 10px;
             display: none;
+            transition: background-color 0.3s ease;
         }
         .button:hover {
             background-color: #45a049;
         }
-        #status {
-            color: #666;
+        .status {
+            padding: 10px;
             margin: 10px 0;
-            font-style: italic;
+            border-radius: 5px;
+        }
+        .status.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .status.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status.info {
+            background-color: #e3f2fd;
+            color: #1565c0;
         }
         .progress-bar {
             width: 100%;
@@ -69,23 +94,37 @@
             background-color: #4CAF50;
             transition: width 0.3s ease;
         }
+        input[type="file"] {
+            display: none;
+        }
+        input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
     <h1>图片压缩工具</h1>
+    <p>简单易用的在线图片压缩服务</p>
     
-    <div class="drop-zone">
+    <div class="drop-zone" id="dropZone">
         <input type="file" id="fileInput" accept="image/*">
-        <p>选择或拖拽图片到这里</p>
+        <p>点击或拖拽图片到这里</p>
         <p>支持 JPG、PNG 格式</p>
     </div>
 
-    <div id="status"></div>
+    <div id="status" class="status"></div>
+    
     <div class="progress-bar" id="progressBar">
         <div class="progress" id="progress"></div>
     </div>
 
-    <div class="image-info" id="imageInfo" style="display: none;">
+    <div class="preview-container">
+        <img id="preview" alt="图片预览">
+    </div>
+
+    <div class="image-info" id="imageInfo">
+        <h3>图片信息</h3>
         <p>原始大小：<span id="originalSize">0 KB</span></p>
         <p>压缩后：<span id="compressedSize">0 KB</span></p>
         <div>
@@ -95,7 +134,6 @@
         </div>
     </div>
 
-    <img id="preview" alt="预览">
     <button id="compressButton" class="button">压缩图片</button>
     <a id="download" class="button" href="#" download="compressed.jpg">下载压缩后的图片</a>
 
