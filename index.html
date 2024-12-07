@@ -32,14 +32,42 @@
             max-width: 100%;
             margin: 20px 0;
             display: none;
+            border-radius: 5px;
         }
-        #download {
+        .button {
             background-color: #4CAF50;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 30px;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
             display: none;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            color: #666;
+            margin: 10px 0;
+            font-style: italic;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+            margin: 10px 0;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
@@ -48,10 +76,16 @@
     
     <div class="drop-zone">
         <input type="file" id="fileInput" accept="image/*">
-        <p>选择图片文件</p>
+        <p>选择或拖拽图片到这里</p>
+        <p>支持 JPG、PNG 格式</p>
     </div>
 
-    <div class="image-info">
+    <div id="status"></div>
+    <div class="progress-bar" id="progressBar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="image-info" id="imageInfo" style="display: none;">
         <p>原始大小：<span id="originalSize">0 KB</span></p>
         <p>压缩后：<span id="compressedSize">0 KB</span></p>
         <div>
@@ -62,7 +96,8 @@
     </div>
 
     <img id="preview" alt="预览">
-    <a id="download" href="#" download="compressed.jpg">下载压缩后的图片</a>
+    <button id="compressButton" class="button">压缩图片</button>
+    <a id="download" class="button" href="#" download="compressed.jpg">下载压缩后的图片</a>
 
     <script src="script.js"></script>
 </body>
