@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // 获取所有需要的元素
     const fileInput = document.getElementById('fileInput');
     const preview = document.getElementById('preview');
     const download = document.getElementById('download');
@@ -9,64 +10,96 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressBar = document.getElementById('progressBar');
     const progress = document.getElementById('progress');
     const imageInfo = document.getElementById('imageInfo');
+    const dropZone = document.getElementById('dropZone');
     
     let currentImage = null;
-    
-    // 文件上传处理
-    fileInput.onchange = function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
+
+    // 拖拽上传处理
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    // 点击上传处理
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // 处理上传的文件
+    function handleFile(file) {
         // 检查文件类型
         if (!file.type.startsWith('image/')) {
-            status.textContent = '请选择图片文件！';
-            status.style.color = 'red';
+            showStatus('请选择图片文件！', 'error');
             return;
         }
-        
-        // 显示状态
-        status.textContent = '正在加载图片...';
-        status.style.color = '#666';
-        
-        // 显示原始文件大小
+
+        showStatus('正在加载图片...', 'info');
         document.getElementById('originalSize').textContent = formatSize(file.size);
-        
-        // 读取并显示图片
+
         const reader = new FileReader();
-        reader.onload = function(event) {
-            currentImage = new Image();
-            currentImage.onload = function() {
-                // 显示预览
-                preview.src = event.target.result;
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                currentImage = img;
+                preview.src = e.target.result;
                 preview.style.display = 'block';
-                
-                // 显示压缩按钮和信息
                 compressButton.style.display = 'inline-block';
                 imageInfo.style.display = 'block';
-                status.textContent = '图片已加载，请点击"压缩图片"按钮进行压缩';
+                showStatus('图片已加载，点击"压缩图片"按钮开始压缩', 'success');
             };
-            currentImage.src = event.target.result;
+            img.onerror = function() {
+                showStatus('图片加载失败，请重试', 'error');
+            };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() {
+            showStatus('文件读取失败，请重试', 'error');
         };
         reader.readAsDataURL(file);
-    };
-    
+    }
+
     // 压缩按钮点击事件
-    compressButton.onclick = function() {
-        if (!currentImage) return;
-        
-        status.textContent = '正在压缩...';
+    compressButton.addEventListener('click', function() {
+        if (!currentImage) {
+            showStatus('请先选择图片', 'error');
+            return;
+        }
+
+        showStatus('正在压缩...', 'info');
         progressBar.style.display = 'block';
         progress.style.width = '0%';
-        
-        // 模拟进度条
+
+        // 模拟压缩进度
         let width = 0;
         const interval = setInterval(() => {
-            if (width >= 90) clearInterval(interval);
+            if (width >= 90) {
+                clearInterval(interval);
+            }
             width += 10;
             progress.style.width = width + '%';
         }, 100);
-        
-        // 压缩图片
+
+        // 执行压缩
         setTimeout(() => {
             compressImage(currentImage);
             clearInterval(interval);
@@ -74,26 +107,29 @@ document.addEventListener('DOMContentLoaded', function() {
             
             setTimeout(() => {
                 progressBar.style.display = 'none';
-                status.textContent = '压缩完成！点击下方按钮下载压缩后的图片';
+                showStatus('压缩完成！点击下方按钮下载压缩后的图片', 'success');
             }, 500);
         }, 1000);
-    };
-    
+    });
+
     // 质量调节
-    quality.oninput = function() {
+    quality.addEventListener('input', function() {
         qualityValue.textContent = this.value + '%';
-    };
-    
+        if (currentImage) {
+            compressImage(currentImage);
+        }
+    });
+
     // 压缩图片
     function compressImage(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
-        // 设置画布大小
+
+        // 计算压缩后的尺寸
         let width = img.width;
         let height = img.height;
         const maxSize = 1920;
-        
+
         if (width > height && width > maxSize) {
             height = (height * maxSize) / width;
             width = maxSize;
@@ -101,28 +137,33 @@ document.addEventListener('DOMContentLoaded', function() {
             width = (width * maxSize) / height;
             height = maxSize;
         }
-        
+
         canvas.width = width;
         canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
-        
-        // 压缩
-        const qualityValue = quality.value / 100;
-        const compressed = canvas.toDataURL('image/jpeg', qualityValue);
-        
-        // 更新预览
-        preview.src = compressed;
-        
-        // 显示下载按钮
-        download.href = compressed;
-        download.style.display = 'inline-block';
-        
-        // 计算压缩后大小
-        const base64Data = compressed.split(',')[1];
-        const compressedSize = Math.round(base64Data.length * 3/4);
-        document.getElementById('compressedSize').textContent = formatSize(compressedSize);
+
+        try {
+            const qualityValue = quality.value / 100;
+            const compressed = canvas.toDataURL('image/jpeg', qualityValue);
+            
+            preview.src = compressed;
+            download.href = compressed;
+            download.style.display = 'inline-block';
+
+            const base64Data = compressed.split(',')[1];
+            const compressedSize = Math.round(base64Data.length * 3/4);
+            document.getElementById('compressedSize').textContent = formatSize(compressedSize);
+        } catch (error) {
+            showStatus('压缩失败，请重试', 'error');
+        }
     }
-    
+
+    // 显示状态信息
+    function showStatus(message, type) {
+        status.textContent = message;
+        status.className = 'status ' + type;
+    }
+
     // 格式化文件大小
     function formatSize(bytes) {
         const sizes = ['B', 'KB', 'MB', 'GB'];
