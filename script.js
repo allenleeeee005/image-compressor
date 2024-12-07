@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const originalSize = document.getElementById('originalSize');
     const compressedSize = document.getElementById('compressedSize');
 
+    let currentFile = null; // 保存当前处理的图片
+
     // 点击上传
     dropZone.addEventListener('click', () => fileInput.click());
 
@@ -39,9 +41,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 质量调节
     quality.addEventListener('input', () => {
-        qualityValue.textContent = quality.value + '%';
-        if (preview.src) {
-            compressImage();
+        const value = quality.value;
+        qualityValue.textContent = value + '%';
+        if (currentFile) {
+            compressImage(currentFile);
         }
     });
 
@@ -51,49 +54,64 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        currentFile = file; // 保存当前文件
         originalSize.textContent = formatSize(file.size);
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            compressImage();
+            const img = new Image();
+            img.onload = () => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                compressImage(file);
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
 
-    function compressImage() {
+    function compressImage(file) {
         const img = new Image();
-        img.src = preview.src;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-            // 保持宽高比
-            let width = img.width;
-            let height = img.height;
-            const maxSize = 1920;
+                // 保持宽高比
+                let width = img.width;
+                let height = img.height;
+                const maxSize = 1920;
 
-            if (width > height && width > maxSize) {
-                height = (height * maxSize) / width;
-                width = maxSize;
-            } else if (height > maxSize) {
-                width = (width * maxSize) / height;
-                height = maxSize;
-            }
+                if (width > height && width > maxSize) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                } else if (height > maxSize) {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
 
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
 
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality.value / 100);
-            download.href = compressedDataUrl;
-            download.style.display = 'block';
+                const currentQuality = quality.value / 100;
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', currentQuality);
+                
+                preview.src = compressedDataUrl;
+                preview.style.display = 'block';
+                
+                download.href = compressedDataUrl;
+                download.style.display = 'block';
 
-            // 计算压缩后大小
-            const compressedSize = Math.round((compressedDataUrl.length - 'data:image/jpeg;base64,'.length) * 3/4);
-            document.getElementById('compressedSize').textContent = formatSize(compressedSize);
+                // 计算压缩后大小
+                const compressedSizeInBytes = Math.round((compressedDataUrl.length - 'data:image/jpeg;base64,'.length) * 3/4);
+                compressedSize.textContent = formatSize(compressedSizeInBytes);
+            };
+            img.src = e.target.result;
         };
+        reader.readAsDataURL(file);
     }
 
     function formatSize(bytes) {
