@@ -4,19 +4,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const download = document.getElementById('download');
     const quality = document.getElementById('quality');
     const qualityValue = document.getElementById('qualityValue');
+    const compressButton = document.getElementById('compressButton');
+    const status = document.getElementById('status');
+    const progressBar = document.getElementById('progressBar');
+    const progress = document.getElementById('progress');
+    const imageInfo = document.getElementById('imageInfo');
     
-    let currentImage = null; // 保存当前图片对象
+    let currentImage = null;
     
     // 文件上传处理
     fileInput.onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
         
-        // 检查是否是图片
+        // 检查文件类型
         if (!file.type.startsWith('image/')) {
-            alert('请选择图片文件！');
+            status.textContent = '请选择图片文件！';
+            status.style.color = 'red';
             return;
         }
+        
+        // 显示状态
+        status.textContent = '正在加载图片...';
+        status.style.color = '#666';
         
         // 显示原始文件大小
         document.getElementById('originalSize').textContent = formatSize(file.size);
@@ -29,22 +39,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 显示预览
                 preview.src = event.target.result;
                 preview.style.display = 'block';
-                // 进行首次压缩
-                compressImage(currentImage);
+                
+                // 显示压缩按钮和信息
+                compressButton.style.display = 'inline-block';
+                imageInfo.style.display = 'block';
+                status.textContent = '图片已加载，请点击"压缩图片"按钮进行压缩';
             };
             currentImage.src = event.target.result;
         };
         reader.readAsDataURL(file);
     };
     
+    // 压缩按钮点击事件
+    compressButton.onclick = function() {
+        if (!currentImage) return;
+        
+        status.textContent = '正在压缩...';
+        progressBar.style.display = 'block';
+        progress.style.width = '0%';
+        
+        // 模拟进度条
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 90) clearInterval(interval);
+            width += 10;
+            progress.style.width = width + '%';
+        }, 100);
+        
+        // 压缩图片
+        setTimeout(() => {
+            compressImage(currentImage);
+            clearInterval(interval);
+            progress.style.width = '100%';
+            
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                status.textContent = '压缩完成！点击下方按钮下载压缩后的图片';
+            }, 500);
+        }, 1000);
+    };
+    
     // 质量调节
     quality.oninput = function() {
-        // 更新显示的质量值
         qualityValue.textContent = this.value + '%';
-        // 如果有图片，重新压缩
-        if (currentImage) {
-            compressImage(currentImage);
-        }
     };
     
     // 压缩图片
@@ -52,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // 设置画布大小（最大尺寸限制）
+        // 设置画布大小
         let width = img.width;
         let height = img.height;
         const maxSize = 1920;
@@ -67,23 +104,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         canvas.width = width;
         canvas.height = height;
-        
-        // 绘制图片
         ctx.drawImage(img, 0, 0, width, height);
         
         // 压缩
         const qualityValue = quality.value / 100;
         const compressed = canvas.toDataURL('image/jpeg', qualityValue);
         
-        // 显示预览
+        // 更新预览
         preview.src = compressed;
-        preview.style.display = 'block';
         
-        // 设置下载链接
+        // 显示下载按钮
         download.href = compressed;
-        download.style.display = 'block';
+        download.style.display = 'inline-block';
         
-        // 计算并显示压缩后大小
+        // 计算压缩后大小
         const base64Data = compressed.split(',')[1];
         const compressedSize = Math.round(base64Data.length * 3/4);
         document.getElementById('compressedSize').textContent = formatSize(compressedSize);
