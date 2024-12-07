@@ -20,25 +20,6 @@
             margin: 20px 0;
             cursor: pointer;
             background-color: white;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        .drop-zone input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .drop-zone:hover {
-            background-color: #f0f9f0;
-            border-color: #45a049;
-        }
-        .drop-zone.dragover {
-            background-color: #e8f5e9;
-            border-color: #2e7d32;
         }
         .image-info {
             background-color: white;
@@ -47,62 +28,33 @@
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .quality-control {
-            margin: 20px 0;
-        }
         #preview {
             max-width: 100%;
             margin: 20px 0;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: none;
         }
         #download {
             background-color: #4CAF50;
             color: white;
-            padding: 12px 30px;
+            padding: 10px 20px;
             text-decoration: none;
-            border-radius: 25px;
-            margin: 20px 0;
+            border-radius: 5px;
             display: none;
-            transition: background-color 0.3s ease;
-        }
-        #download:hover {
-            background-color: #45a049;
-        }
-        input[type="range"] {
-            width: 200px;
-            margin: 0 10px;
-        }
-        h1 {
-            color: #2e7d32;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #666;
-            margin: 5px 0;
         }
     </style>
 </head>
 <body>
     <h1>图片压缩工具</h1>
-    <p>简单易用的在线图片压缩服务</p>
     
-    <div class="drop-zone" id="dropZone">
+    <div class="drop-zone">
         <input type="file" id="fileInput" accept="image/*">
-        <p>点击或拖拽图片到这里</p>
-        <p>支持 PNG、JPG 格式</p>
+        <p>选择图片文件</p>
     </div>
 
     <div class="image-info">
-        <h3>原始图片</h3>
-        <p>文件大小：<span id="originalSize">0 KB</span></p>
-    </div>
-
-    <div class="image-info">
-        <h3>压缩后</h3>
-        <p>文件大小：<span id="compressedSize">0 KB</span></p>
-        <div class="quality-control">
+        <p>原始大小：<span id="originalSize">0 KB</span></p>
+        <p>压缩后：<span id="compressedSize">0 KB</span></p>
+        <div>
             <label>压缩质量：</label>
             <input type="range" id="quality" min="0" max="100" value="80">
             <span id="qualityValue">80%</span>
@@ -110,8 +62,8 @@
     </div>
 
     <img id="preview" alt="预览">
-    <a id="download" href="#" download="compressed-image.jpg">下载压缩后的图片</a>
+    <a id="download" href="#" download="compressed.jpg">下载压缩后的图片</a>
 
     <script src="script.js"></script>
 </body>
-</html> 
+</html>
